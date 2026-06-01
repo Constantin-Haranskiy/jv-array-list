@@ -15,22 +15,16 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public void add(T value) {
-        if (size == array.length) {
-            grow();
-        }
+        growIfArrayFull(size + 1);
         array[size++] = value;
     }
 
     @Override
     public void add(T value, int index) {
         if (index < 0 || index > size) {
-            throw new ArrayListIndexOutOfBoundsException("Index out of bounds "
-                    + "while adding the value");
+            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
         }
-
-        if (size == array.length) {
-            grow();
-        }
+        growIfArrayFull(size + 1);
 
         System.arraycopy(array, index, array, index + 1, size - index);
         array[index] = value;
@@ -46,31 +40,22 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public T get(int index) {
-        if (index < 0 || index >= size) {
-            throw new ArrayListIndexOutOfBoundsException("Index out of bounds "
-                    + "while getting the value");
-        }
+        validateIndex(index);
         return array[index];
     }
 
     @Override
     public void set(T value, int index) {
-        if (index < 0 || index >= size) {
-            throw new ArrayListIndexOutOfBoundsException("Index out of bounds "
-                    + "while setting the value");
-        }
+        validateIndex(index);
         array[index] = value;
     }
 
     @Override
     public T remove(int index) {
-        if (index < 0 || index >= size) {
-            throw new ArrayListIndexOutOfBoundsException("Index out of bounds "
-                    + "while removing the value");
-        }
+        validateIndex(index);
 
         T element = array[index];
-        if (index < size - 1) {
+        if (size - index - 1 > 0) {
             System.arraycopy(array, index + 1, array, index, size - index - 1);
         }
         array[--size] = null;
@@ -97,9 +82,25 @@ public class ArrayList<T> implements List<T> {
         return size == 0;
     }
 
-    private void grow() {
-        T[] tempArray = (T[]) new Object[size + (size >> 1)];
-        System.arraycopy(array, 0, tempArray, 0, array.length);
+    private void growIfArrayFull(int minCapacity) {
+        if (minCapacity <= array.length) {
+            return;
+        }
+
+        int newCapacity = array.length + (array.length >> 1);
+
+        if (newCapacity < minCapacity) {
+            newCapacity = DEFAULT_CAPACITY;
+        }
+
+        T[] tempArray = (T[]) new Object[newCapacity];
+        System.arraycopy(array, 0, tempArray, 0, size);
         array = tempArray;
+    }
+
+    private void validateIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new ArrayListIndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
     }
 }
